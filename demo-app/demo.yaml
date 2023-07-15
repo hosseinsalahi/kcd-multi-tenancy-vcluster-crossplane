@@ -1,0 +1,380 @@
+---
+# Source: jira/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: demo-jira
+  labels:
+    helm.sh/chart: jira-1.13.1
+    app.kubernetes.io/name: jira
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "9.4.7"
+    app.kubernetes.io/managed-by: Helm
+---
+# Source: jira/templates/config-jvm.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: demo-jira-jvm-config
+  labels:
+    helm.sh/chart: jira-1.13.1
+    app.kubernetes.io/name: jira
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "9.4.7"
+    app.kubernetes.io/managed-by: Helm
+    
+data:
+  additional_jvm_args: >-
+    -Datlassian.logging.cloud.enabled=false
+    -XX:ActiveProcessorCount=1
+    
+  max_heap: 768m
+  min_heap: 384m
+  reserved_code_cache: 512m
+---
+# Source: jira/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: demo-jira
+  labels:
+    helm.sh/chart: jira-1.13.1
+    app.kubernetes.io/name: jira
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "9.4.7"
+    app.kubernetes.io/managed-by: Helm
+    
+  annotations:
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - port: 80
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: jira
+    app.kubernetes.io/instance: demo
+---
+# Source: jira/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: demo-jira
+  labels:
+    helm.sh/chart: jira-1.13.1
+    app.kubernetes.io/name: jira
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "9.4.7"
+    app.kubernetes.io/managed-by: Helm
+    
+spec:
+  replicas: 1
+  serviceName: demo-jira
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: jira
+      app.kubernetes.io/instance: demo
+  template:
+    metadata:
+      annotations:
+        checksum/config-jvm: 10a97564d0d7b18bc9a7b119e617a909ae632243ff64810142a4a1506accf050
+        
+      labels:
+        app.kubernetes.io/name: jira
+        app.kubernetes.io/instance: demo
+        
+    spec:
+      serviceAccountName: demo-jira
+      terminationGracePeriodSeconds: 30
+      hostAliases:
+        
+      securityContext:
+        
+        
+        fsGroup: 2001
+      initContainers:
+        
+        - name: nfs-permission-fixer
+          image: alpine:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            runAsUser: 0 # make sure we run as root so we get the ability to change the volume permissions
+          volumeMounts:
+            - name: shared-home
+              mountPath: "/shared-home"
+          command: ["sh", "-c", "(chgrp 2001 /shared-home; chmod g+w /shared-home)"]
+        
+      containers:
+        - name: jira
+          image: "atlassian/jira-software:9.4.7"
+          imagePullPolicy: IfNotPresent
+          env:
+            
+            - name: ATL_TOMCAT_SCHEME
+              value: "https"
+            - name: ATL_TOMCAT_SECURE
+              value: "true"
+            
+            
+            - name: ATL_TOMCAT_PORT
+              value: "8080"
+            
+            
+            
+            
+            - name: ATL_DB_TYPE
+              value: "postgres72"
+            
+            
+            - name: ATL_DB_DRIVER
+              value: "org.postgresql.Driver"
+            
+            
+            - name: ATL_JDBC_URL
+              value: "jdbc:postgresql://35.242.243.43:5432/db-2"
+            
+            
+            - name: ATL_JDBC_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jira-postgres-creds
+                  key: username
+            - name: ATL_JDBC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jira-postgres-creds
+                  key: password
+            
+            
+            
+            
+            - name: SET_PERMISSIONS
+              value: "true"
+            - name: JIRA_SHARED_HOME
+              value: "/var/atlassian/application-data/shared-home"
+            - name: JVM_SUPPORT_RECOMMENDED_ARGS
+              valueFrom:
+                configMapKeyRef:
+                  key: additional_jvm_args
+                  name: demo-jira-jvm-config
+            - name: JVM_MINIMUM_MEMORY
+              valueFrom:
+                configMapKeyRef:
+                  key: min_heap
+                  name: demo-jira-jvm-config
+            - name: JVM_MAXIMUM_MEMORY
+              valueFrom:
+                configMapKeyRef:
+                  key: max_heap
+                  name: demo-jira-jvm-config
+            - name: JVM_RESERVED_CODE_CACHE_SIZE
+              valueFrom:
+                configMapKeyRef:
+                  key: reserved_code_cache
+                  name: demo-jira-jvm-config
+            
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: ehcache
+              containerPort: 40001
+              protocol: TCP
+            - name: ehcacheobject
+              containerPort: 40011
+              protocol: TCP
+            
+            
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /status
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 10
+          startupProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 120
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            periodSeconds: 5
+            failureThreshold: 1
+          
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1G
+          volumeMounts:
+            
+            - name: local-home
+              mountPath: "/var/atlassian/application-data/jira"
+            - name: local-home
+              mountPath: "/opt/atlassian/jira/logs"
+              subPath: "log"
+            - name: shared-home
+              mountPath: "/var/atlassian/application-data/shared-home"
+            
+            
+            
+            
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "/shutdown-wait.sh"]
+        
+        
+        
+      volumes:
+        
+        
+        
+        - name: local-home
+        
+          emptyDir: {}
+        - name: shared-home
+        
+          emptyDir: {}
+---
+# Source: jira/templates/tests/test-application-status.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "demo-jira-application-status-test"
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+    
+  labels:
+    helm.sh/chart: jira-1.13.1
+    app.kubernetes.io/name: jira
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "9.4.7"
+    app.kubernetes.io/managed-by: Helm
+    
+spec:
+  containers:
+    - name: test
+      image: alpine
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: STATUS_URL
+          value: "http://demo-jira:80/status"
+      command:
+        - /bin/sh
+        - -ec
+        - |
+          apk add -q jq curl
+          STATUS=$(curl -s "$STATUS_URL")
+          echo "Verifying application state is RUNNING or FIRST_RUN: $STATUS"
+          echo $STATUS | jq -e '.state|test("RUNNING|FIRST_RUN")'
+  restartPolicy: Never
+---
+# Source: jira/templates/tests/test-database-connectivity.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "demo-jira-db-connectivity-test"
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+    
+  labels:
+    helm.sh/chart: jira-1.13.1
+    app.kubernetes.io/name: jira
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "9.4.7"
+    app.kubernetes.io/managed-by: Helm
+    
+spec:
+  serviceAccountName: demo-jira
+  containers:
+    - name: test
+      image: "atlassian/jira-software:9.4.7"
+      imagePullPolicy: IfNotPresent
+      env:
+        - name: JDBC_DRIVER
+          value: "org.postgresql.Driver"
+        - name: JDBC_URL
+          value: "jdbc:postgresql://35.242.243.43:5432/db-2"
+        - name: JDBC_USER
+          valueFrom:
+            secretKeyRef:
+              name: jira-postgres-creds
+              key: username
+        - name: JDBC_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: jira-postgres-creds
+              key: password
+        - name: CLASSPATH
+          value: "/opt/atlassian/jira/lib/*"
+      command:
+        - /bin/bash
+        - -ec
+        - |
+          cat <<EOF | jshell - > output.txt
+          var jdbcDriver = System.getenv("JDBC_DRIVER");
+          var jdbcUrl = System.getenv("JDBC_URL");
+          var jdbcUsername = System.getenv("JDBC_USER");
+          var jdbcPassword = System.getenv("JDBC_PASSWORD");
+
+          System.out.println("Loading driver " + jdbcDriver);
+          Class.forName(jdbcDriver);
+
+          System.out.println("Establishing connection to " + jdbcUrl);
+          try (var c = java.sql.DriverManager.getConnection(jdbcUrl, jdbcUsername, jdbcPassword)) {
+             System.out.println("Connection established OK, " + c.getClass());
+          }
+          EOF
+          cat output.txt
+          grep -q "Connection established OK" output.txt
+  restartPolicy: Never
+---
+# Source: jira/templates/tests/test-shared-home-permissions.yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "demo-jira-shared-home-permissions-test"
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": "before-hook-creation,hook-succeeded"
+    
+  labels:
+    helm.sh/chart: jira-1.13.1
+    app.kubernetes.io/name: jira
+    app.kubernetes.io/instance: demo
+    app.kubernetes.io/version: "9.4.7"
+    app.kubernetes.io/managed-by: Helm
+    
+spec:
+  containers:
+    - name: test
+      image: debian:stable-slim
+      imagePullPolicy: IfNotPresent
+      securityContext:
+        # We assume that the UID and GID used by the product images are the same, which in practice they are
+        runAsUser: 2001
+        runAsGroup: 2001
+      volumeMounts:
+        - name: shared-home
+          mountPath: /shared-home
+      command:
+        - /bin/sh
+        - -ec
+        - |
+          ls -ld /shared-home
+          echo "Creating temporary file in shared home as user $(id -u):$(id -g)"
+          touch /shared-home/permissions-test
+          ls -l /shared-home/permissions-test
+          rm /shared-home/permissions-test
+  volumes:
+    
+    - name: shared-home
+    
+      emptyDir: {}
+  restartPolicy: Never
