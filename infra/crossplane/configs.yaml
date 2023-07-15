@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: crossplane-gcp
+  namespace: argocd-system
+spec:
+  destination:
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    directory:
+      jsonnet: {}
+      recurse: true
+    path: configs/crossplane/providers/gcp
+    repoURL: https://github.com/hosseinsalahi/kcd-multi-tenancy-vcluster-crossplane.git
+    targetRevision: main
+  syncPolicy:
+    automated: {}
