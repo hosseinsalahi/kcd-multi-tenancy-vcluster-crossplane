@@ -4,7 +4,7 @@ metadata:
   annotations:
     meta.upbound.io/example-id: sql/v1beta1/user
   labels:
-    testing.upbound.io/example-name: demo_user
+    testing.upbound.io/example-name: demo_user_1
   name: demo-user-1
   namespace: tenant-1
 spec:
@@ -15,7 +15,7 @@ spec:
       key: password
     instanceSelector:
       matchLabels:
-        testing.upbound.io/example-name: demo_instance
+        testing.upbound.io/example-name: demo_instance_1
 ---
 apiVersion: v1
 data:
@@ -25,7 +25,7 @@ metadata:
   annotations:
     meta.upbound.io/example-id: sql/v1beta1/user
   labels:
-    testing.upbound.io/example-name: demo_user
+    testing.upbound.io/example-name: demo_user_1
   name: demo-sql-user
   namespace: tenant-1
 ---
@@ -36,7 +36,7 @@ metadata:
     uptest.upbound.io/pre-delete-hook: testhooks/delete-user.sh
     meta.upbound.io/example-id: sql/v1beta1/user
   labels:
-    testing.upbound.io/example-name: demo_instance
+    testing.upbound.io/example-name: demo_instance_1
   name: demo-instance-1
 spec:
   forProvider:
@@ -56,11 +56,11 @@ metadata:
   annotations:
     meta.upbound.io/example-id: sql/v1beta1/database
   labels:
-    testing.upbound.io/example-name: demo_database
+    testing.upbound.io/example-name: demo_database_1
   name: db-1
   namespace: tenant-1
 spec:
   forProvider:
     instanceSelector:
       matchLabels:
-        testing.upbound.io/example-name: demo_instance
+        testing.upbound.io/example-name: demo_instance_1
