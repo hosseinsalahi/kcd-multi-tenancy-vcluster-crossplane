@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gcp-tenant-1
+  namespace: argocd-system
+  labels:
+    tenant-name: tenant-1
+spec:
+  destination:
+    namespace: tenant-1
+    server: https://kubernetes.default.svc
+  project: tenants
+  source:
+    directory:
+      jsonnet: {}
+      recurse: true
+    path: tenants/tenant-1/resources
+    repoURL: https://github.com/hosseinsalahi/kcd-multi-tenancy-vcluster-crossplane.git
+    targetRevision: main
+  syncPolicy:
+    automated: {}

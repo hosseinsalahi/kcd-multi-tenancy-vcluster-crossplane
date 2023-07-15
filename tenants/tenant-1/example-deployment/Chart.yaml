@@ -1,0 +1,28 @@
+annotations:
+  artifacthub.io/changes: |-
+    - "Run jmx init container as root: get fix from common chart ver 1.2.3 (#608)"
+    - "Add s3 avatars storage support for Jira (#608)"
+  artifacthub.io/containsSecurityUpdates: "false"
+apiVersion: v2
+appVersion: 9.4.7
+dependencies:
+- name: common
+  repository: https://atlassian.github.io/data-center-helm-charts
+  version: 1.2.3
+description: A chart for installing Jira Data Center on Kubernetes
+home: https://atlassian.github.io/data-center-helm-charts/
+icon: https://atlassian.github.io/data-center-helm-charts/icons/jira-software.svg
+keywords:
+- Jira
+- Jira Software
+- Jira Server
+- Jira Data Center
+- Jira DC
+- Atlassian
+kubeVersion: '>=1.21.x-0'
+name: jira
+sources:
+- https://github.com/atlassian/data-center-helm-charts
+- https://bitbucket.org/atlassian-docker/docker-atlassian-jira/
+type: application
+version: 1.13.1
