@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: vcluster-tenant-1
+  namespace: argocd-system
+spec:
+  destination:
+    namespace: tenant-1
+    server: https://kubernetes.default.svc
+  project: tenants
+  source:
+    chart: vcluster
+    repoURL: https://charts.loft.sh
+    targetRevision: 0.15.2
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true

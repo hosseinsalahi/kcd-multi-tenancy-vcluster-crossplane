@@ -1,0 +1,68 @@
+apiVersion: sql.gcp.upbound.io/v1beta1
+kind: User
+metadata:
+  annotations:
+    meta.upbound.io/example-id: sql/v1beta1/user
+  labels:
+    testing.upbound.io/example-name: demo_user
+  name: demo-user
+spec:
+  forProvider:
+    passwordSecretRef:
+      name: demo-sql-user
+      namespace: crossplane-system
+      key: password
+    instanceSelector:
+      matchLabels:
+        testing.upbound.io/example-name: demo_instance
+
+---
+
+apiVersion: v1
+data:
+  password: Y2hhbmdlbWU=
+kind: Secret
+metadata:
+  annotations:
+    meta.upbound.io/example-id: sql/v1beta1/user
+  labels:
+    testing.upbound.io/example-name: demo_user
+  name: demo-sql-user
+  namespace: crossplane-system
+
+---
+
+apiVersion: sql.gcp.upbound.io/v1beta1
+kind: DatabaseInstance
+metadata:
+  annotations:
+    uptest.upbound.io/pre-delete-hook: testhooks/delete-user.sh
+    meta.upbound.io/example-id: sql/v1beta1/user
+  labels:
+    testing.upbound.io/example-name: demo_instance
+  name: demo-instance-564973c070d76c1a
+spec:
+  forProvider:
+    region: "europe-west3"
+    databaseVersion: "POSTGRES_12"
+    settings:
+      - tier: "db-f1-micro"
+        diskSize: 20
+    deletionProtection: false # allow crossplane to delete the instance automatically
+  writeConnectionSecretToRef:
+    name: demo-sql-db-instance-secret
+    namespace: crossplane-system
+---
+apiVersion: sql.gcp.upbound.io/v1beta1
+kind: Database
+metadata:
+  annotations:
+    meta.upbound.io/example-id: sql/v1beta1/database
+  labels:
+    testing.upbound.io/example-name: demo_database
+  name: demo-database
+spec:
+  forProvider:
+    instanceSelector:
+      matchLabels:
+        testing.upbound.io/example-name: demo_instance
