@@ -5,7 +5,7 @@ metadata:
     meta.upbound.io/example-id: sql/v1beta1/user
   labels:
     testing.upbound.io/example-name: demo_user
-  name: demo-user
+  name: demo-user-1
   namespace: tenant-1
 spec:
   forProvider:
@@ -57,7 +57,7 @@ metadata:
     meta.upbound.io/example-id: sql/v1beta1/database
   labels:
     testing.upbound.io/example-name: demo_database
-  name: demo
+  name: db-1
   namespace: tenant-1
 spec:
   forProvider:
