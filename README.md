@@ -1,5 +1,7 @@
 # kcd-multi-tenancy-vcluster-crossplane
 
+![Alt text](./img/argocd_crossplane_vcluster_architecture_demo.png)
+
 ## ArgoCD 
 ```bash
 helm install argocd-system -n argocd-system --create-namespace argocd/argo-cd
