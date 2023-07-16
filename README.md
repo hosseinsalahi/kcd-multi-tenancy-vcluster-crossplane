@@ -16,7 +16,7 @@ kubectl apply -f configs/crossplane/providers/gcp/config/provider-config.yaml
 # Tenant
 ```bash
 kubectl apply -f projects/tenants.yaml
-kubecl apply -f tenants/tenant-2/vcluster/vcluster.yaml
+kubectl apply -f tenants/tenant-2/vcluster/vcluster.yaml
 vcluster list
 vcluster connect vcluster-tenant-2 -n tenant-2
 ```
@@ -24,9 +24,14 @@ vcluster connect vcluster-tenant-2 -n tenant-2
 ```bash
 kubectl apply -f tenants/tenant-2/apps/gcp.yaml
 ```
+
 # Sample Application
 ```bash
+vcluster list
+vcluster connect vcluster-tenant-2 -n tenant-2
+kubectl create ns demo
 kubectl -n demo create secret generic postgres-creds  --from-literal=username=demo-user-2 --from-literal=password=changeme
-kubectl -n demo apply -f demo-app/demo.yaml
-kubectl -n demo port-forward svc/jira 8080:80
+cd demo-app
+helm install demo -n demo . -f values.yaml
+kubectl -n demo port-forward svc/demo-jira 8080:80
 ```
