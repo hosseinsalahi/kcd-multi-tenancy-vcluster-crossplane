@@ -1,4 +1,4 @@
-# kcd-multi-tenancy-vcluster-crossplane
+# kcd-multi-tenancy-vcluster-crossplane-demo
 
 ![Alt text](./img/argocd_crossplane_vcluster_architecture_demo.png)
 
