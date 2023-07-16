@@ -14,7 +14,7 @@ spec:
     directory:
       jsonnet: {}
       recurse: true
-    path: tenants/tenant-1/resources
+    path: tenants/tenant-1/resources/gcp
     repoURL: https://github.com/hosseinsalahi/kcd-multi-tenancy-vcluster-crossplane.git
     targetRevision: main
   syncPolicy:

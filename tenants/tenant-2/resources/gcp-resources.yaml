@@ -3,7 +3,7 @@ kind: Application
 metadata:
   name: gcp-tenant-2
   namespace: argocd-system
-  label:
+  labels:
     tenant-name: tenant-2
 spec:
   destination:
@@ -14,7 +14,7 @@ spec:
     directory:
       jsonnet: {}
       recurse: true
-    path: tenants/tenant-2/resources
+    path: tenants/tenant-2/resources/gcp
     repoURL: https://github.com/hosseinsalahi/kcd-multi-tenancy-vcluster-crossplane.git
     targetRevision: main
   syncPolicy:
