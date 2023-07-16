@@ -112,7 +112,7 @@ database:
    # - 'jdbc:oracle:thin:@<dbhost>:1521:<SID>'
   # https://atlassian.github.io/data-center-helm-charts/userguide/CONFIGURATION/#databaseurl
   #
-  url: jdbc:postgresql://35.242.243.43:5432/db-2
+  url: jdbc:postgresql://:5432/db-1
 
   # -- The Java class name of the JDBC driver to be used. If not specified, then it will
   # need to be provided via the browser during manual configuration post deployment.
@@ -139,7 +139,7 @@ database:
     # --from-literal=password=<password>'
     # https://kubernetes.io/docs/concepts/configuration/secret/#opaque-secrets
     #
-    secretName: jira-postgres-creds
+    secretName: postgres-creds
 
     # -- The key ('username') in the Secret used to store the database login username
     #
